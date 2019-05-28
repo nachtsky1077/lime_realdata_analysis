@@ -111,7 +111,7 @@ sklearn.metrics.f1_score(y_test, pred, average = None)
 report = sklearn.metrics.classification_report(y_test, pred, output_dict = True)
 
 # lime explanation
-predict_fn = lambda x: gbtree.predict_proba(onehot_enc.transform(x)).astype(float)
+predict_fn = lambda x: rf.predict_proba(onehot_enc.transform(x)).astype(float)
 
 feature_names = ['race', 'sex', 'c_charge_degree', 'age', 'priors_count', 'days_b_screening_arrest',
                   'juv_misd_count', 'juv_other_count', 'juv_fel_count',
@@ -124,15 +124,25 @@ explainer = lime.lime_tabular.LimeTabularExplainer(X_train ,feature_names = feat
                                                    categorical_names=categorical_names, kernel_width=3)
 
 np.random.seed(1)
-i = 200
-gbtree.predict(onehot_enc.transform(X_test))[i]
-iteration = 10
+i = 106
+#gbtree.predict(onehot_enc.transform(X_test))[i]
+iteration = 50
 race_importance = []
+feats_count0 = dict()
+feats_count1 = dict()
+#['High' 'Low' 'Medium']
 for it in range(iteration):
-    exp = explainer.explain_instance(X_test[i], predict_fn, num_features=10, labels = (0, 1, 2))
-    exp_list = exp.as_list(0)
-    for item in exp_list:
-        if 'African' in item[0]:
-            race_importance.append(item[1])
-            break
-print(race_importance)
+    exp = explainer.explain_instance(X_test[i], predict_fn, num_features=5, labels = (0, 1, 2))
+    exp_list0 = exp.as_list(0)
+    exp_list1 = exp.as_list(1)
+    for feat, val in exp_list0:
+        if not feat in feats_count0.keys():
+            feats_count0[feat] = 0
+        feats_count0[feat] += 1
+    for feat, val in exp_list1:
+        if not feat in feats_count1.keys():
+            feats_count1[feat] = 0
+        feats_count1[feat] += 1
+
+print(feats_count0)
+print(feats_count1)
